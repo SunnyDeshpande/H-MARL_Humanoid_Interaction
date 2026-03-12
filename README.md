@@ -181,50 +181,21 @@ Plug the cloned directory into your local Isaac Lab filesystem to run.
 
 ---
 
-## Usage
-
-### Training — Low-Level Standing Policy
-```bash
-python code/train.py --task G1Standing --num_envs 256 --max_iterations 50000
-```
-
-### Training — Low-Level Walking Policy
-```bash
-python code/train.py --task G1Walking --num_envs 256 --max_iterations 100000 \
-    --checkpoint weights/standing_latest.pth
-```
-
-### Training — High-Level Navigation
-```bash
-python code/train_hl.py --task HumanoidMeetup --num_envs 1 \
-    --ll_checkpoint weights/walking_best.pth
-```
-
-### Evaluation
-```bash
-python code/eval.py --task HumanoidMeetup \
-    --ll_checkpoint weights/walking_best.pth \
-    --hl_checkpoint weights/meetup_best.pth
-```
-
----
-
 ## Project Structure
+
+This repo contains the source files intended to be plugged into an existing local Isaac Lab installation — it is not a standalone project. Weights and other runtime artifacts live outside this repo in your Isaac Lab filesystem.
 
 ```
 H-MARL_Humanoid_Interaction/
-├── code/
+├── code/                   # source files — plug into Isaac Lab
 │   ├── envs/
 │   │   ├── humanoid_env_cfg.py      # environment and terrain config
-│   │   └── rewards.py               # all reward/penalty term definitions
-│   ├── agents/
-│   │   ├── high_level_ppo.py        # high-level navigation policy [64, 64] ReLU
-│   │   └── low_level_ppo.py         # low-level locomotion policy [256, 256] ELU
-│   ├── train.py                     # low-level training entry point
-│   ├── train_hl.py                  # high-level training entry point
-│   └── eval.py                      # full system evaluation
-├── weights/                         # saved policy checkpoints
-├── media/                           # GIFs and screenshots (add yours here)
+│   │   └── rewards.py               # reward/penalty term definitions
+│   └── agents/
+│       ├── high_level_ppo.py        # high-level navigation policy [64, 64] ReLU
+│       └── low_level_ppo.py         # low-level locomotion policy [256, 256] ELU
+├── weights/                # reference checkpoints (low-level policy)
+├── media/                  # GIFs and screenshots
 └── README.md
 ```
 
