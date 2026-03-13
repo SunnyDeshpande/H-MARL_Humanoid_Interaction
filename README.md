@@ -171,31 +171,105 @@ Training progresses through 7 phases:
 
 ### Setup
 
+Requires a working Isaac Lab 5.1.0 installation. This repo is **not standalone** — files must be copied into your existing Isaac Lab filesystem.
+
 ```bash
-# Clone into your Isaac Lab source extensions directory
-cd <ISAACLAB_ROOT>/source/extensions
 git clone https://github.com/SunnyDeshpande/H-MARL_Humanoid_Interaction.git
+cd H-MARL_Humanoid_Interaction
+
+# Copy environment configs into Isaac Lab's G1 locomotion task directory
+cp code/envs/Flat_Meetup/* <ISAACLAB_ROOT>/source/isaaclab_tasks/isaaclab_tasks/manager_based/locomotion/velocity/config/g1/
+
+# Copy training and demo scripts into Isaac Lab's RL scripts directory
+cp code/scripts/*.py <ISAACLAB_ROOT>/scripts/reinforcement_learning/custom/
 ```
 
-Plug the cloned directory into your local Isaac Lab filesystem to run.
+> **Note**: Replace `<ISAACLAB_ROOT>` with your local Isaac Lab installation path (e.g., `~/IsaacLab`).
+
+### Training
+
+```bash
+cd <ISAACLAB_ROOT>
+
+# Set path to cloned repo (for loading weights)
+export HMARL_REPO=/path/to/H-MARL_Humanoid_Interaction
+
+# Low-level locomotion training (resume from checkpoint, or omit --load_checkpoint to start fresh)
+./isaaclab.sh -p scripts/reinforcement_learning/custom/train_ppo_g1.py \
+  --task Isaac-Velocity-Flat-OneG1-v0 \
+  --device cuda:0 \
+  --phase walk \
+  --num_envs 256 \
+  --load_checkpoint $HMARL_REPO/weights/low-level/checkpoint/low-level/ppo_walk_final.zip \
+  --vecnorm_path $HMARL_REPO/weights/low-level/vecnorm/vecnormalize_final.pkl \
+  --total_timesteps 1000000
+
+# High-level navigation training (uses frozen low-level policy)
+python3 scripts/reinforcement_learning/custom/train_hl_robot_meetup.py \
+  --phase 2 \
+  --phase2_steps 400000
+```
+
+### Demo
+
+```bash
+cd <ISAACLAB_ROOT>
+
+# Low-level locomotion demo
+./isaaclab.sh -p scripts/reinforcement_learning/custom/play_ppo_g1.py \
+  --task Isaac-Velocity-Flat-OneG1-v0 \
+  --device cuda:0 \
+  --phase walk \
+  --num_envs 4 \
+  --checkpoint $HMARL_REPO/weights/low-level/checkpoint/low-level/ppo_walk_final.zip \
+  --max_steps 5000
+
+# High-level navigation demo
+python3 scripts/reinforcement_learning/custom/play_hl_robot_meetup.py \
+  --model_path $HMARL_REPO/weights/high-level/ppo_two_robot_phase2_final.zip \
+  --episodes 10 \
+  --phase 2 \
+  --max_steps 300
+
+# Full system demo (both levels running together)
+./isaaclab.sh -p scripts/reinforcement_learning/custom/play_two_g1_meetup.py \
+  --task Isaac-Velocity-Flat-OneG1-v0 \
+  --device cuda:0 \
+  --g1_checkpoint $HMARL_REPO/weights/low-level/checkpoint/low-level/ppo_walk_final.zip \
+  --g1_vecnorm $HMARL_REPO/weights/low-level/vecnorm/vecnormalize_final.pkl \
+  --meetup_checkpoint $HMARL_REPO/weights/high-level/ppo_two_robot_phase2_final.zip \
+  --max_steps 5000
+```
 
 ---
 
 ## Project Structure
 
-This repo contains the source files intended to be plugged into an existing local Isaac Lab installation — it is not a standalone project. Weights and other runtime artifacts live outside this repo in your Isaac Lab filesystem.
-
 ```
 H-MARL_Humanoid_Interaction/
-├── code/                   # source files — plug into Isaac Lab
+├── code/
 │   ├── envs/
-│   │   ├── humanoid_env_cfg.py      # environment and terrain config
-│   │   └── rewards.py               # reward/penalty term definitions
-│   └── agents/
-│       ├── high_level_ppo.py        # high-level navigation policy [64, 64] ReLU
-│       └── low_level_ppo.py         # low-level locomotion policy [256, 256] ELU
-├── weights/                # reference checkpoints (low-level policy)
-├── media/                  # GIFs and screenshots
+│   │   └── Flat_Meetup/                        # env configs → Isaac Lab G1 locomotion task dir
+│   │       ├── __init__.py
+│   │       ├── flat_env_cfg.py                  # flat terrain environment config
+│   │       ├── one_G1_env_cfg.py                # single-robot environment config
+│   │       ├── rough_env_cfg.py                 # rough terrain environment config
+│   │       └── two_g1_task_cfg.py               # dual-robot meetup task config
+│   └── scripts/                                 # training/demo scripts → Isaac Lab RL custom dir
+│       ├── train_ppo_g1.py                      # low-level locomotion training
+│       ├── train_hl_robot_meetup.py             # high-level navigation training
+│       ├── play_ppo_g1.py                       # low-level demo
+│       ├── play_hl_robot_meetup.py              # high-level demo
+│       └── play_two_g1_meetup.py                # full system demo (HL + LL)
+├── weights/
+│   ├── high-level/
+│   │   └── ppo_two_robot_phase2_final.zip       # trained navigation policy
+│   └── low-level/
+│       ├── checkpoint/low-level/
+│       │   └── ppo_walk_final.zip               # trained locomotion policy
+│       └── vecnorm/
+│           └── vecnormalize_final.pkl           # observation normalization stats
+├── media/                                       # GIFs and screenshots
 └── README.md
 ```
 

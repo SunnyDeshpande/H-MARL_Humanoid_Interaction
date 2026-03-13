@@ -5,7 +5,7 @@ All of these files go into:
 Commands:
 
 Low-Level Training:
-./isaaclab.sh -p <IsaacLab Directory>/scripts/reinforcement_learning/custom/train_ppo_g1.py   --task Isaac-Velocity-Flat-OneG1-v0   --device cuda:0   --phase walk  --num_envs 256 --load_checkpoint <Low-Level Checkpoint Directory>/ppo_walk_final.zip   --vecnorm_path <Low-Level Vecnorm Directory>/vecnormalize_final.pkl  --total_timesteps 1000000
+./isaaclab.sh -p <IsaacLab Directory>/scripts/reinforcement_learning/custom/train_ppo_g1.py   --task Isaac-Velocity-Flat-OneG1-v0   --device cuda:0   --phase walk  --num_envs 256 --load_checkpoint <Low-Level Checkpoint Directory>/ppo_walk_final.zip   --vecnorm_path <Low-Level Vecnorm Directory>/vecnorm/vecnormalize_final.pkl  --total_timesteps 1000000
 
 Low-Level Demo:
 ./isaaclab.sh -p <IsaacLab Directory>/scripts/reinforcement_learning/custom/play_ppo_g1.py   --task Isaac-Velocity-Flat-OneG1-v0   --device cuda:0   --phase walk  --num_envs 4 --checkpoint <Low-Level Checkpoint Directory>/ppo_walk_final.zip --max_steps 5000
